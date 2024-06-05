@@ -6,30 +6,16 @@
 #   ARM toolchain installed to either their respective default installation
 #   locations, the tools directory or made available on the system path.
 
-# Check for and find Python 2
-
-# Get Python version, separate major/minor/patch, then put into wordlist
-PYTHON_VERSION_=$(wordlist 2,4,$(subst ., ,$(shell python -V 2>&1)))
-# Get major version from aforementioned list
-PYTHON_MAJOR_VERSION_=$(word 1,$(PYTHON_VERSION_))
-# Just in case Make has some weird scope stuff
-PYTHON=0
-# If the major Python version is the one we want..
-ifeq ($(PYTHON_MAJOR_VERSION_),2)
-	# Then we can just use the normal Python executable
+# Original code was looking for python2 specifically, don't have it, so
+# just find one (note, behavior of shell `which` differs from /usr/bin/which)
+ifeq ($(shell /usr/bin/which -s python3; echo $$?), 0)
+	PYTHON:=python3
+else ifeq ($(shell /usr/bin/which -s python2; echo $$?), 0)
+	PYTHON:=python2
+else ifeq ($(shell /usr/bin/which -s python; echo $$?), 0)
 	PYTHON:=python
 else
-	# However, this isn't always the case..
-	# Let's look for `python2`. If `which` doesn't return a null value, then
-	#  it exists!
-	ifneq ($(shell which python2), "")
-		PYTHON:=python2
-	else
-		# And if it doesn't exist, let's use the default Python, and warn the user.
-		# PYTHON NOT FOUND.
-		PYTHON:=python
-		echo "Python not found."
-	endif
+$(error No python found)
 endif
 
 export PYTHON
